@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gridman-mcp"
+version = "1.8.8"
+description = "古立特 Gridman MCP Server — 财税审计计算工具（跨 AI Agent 通用，uvx 一键启动）"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "真寻Charlotte" }]
+keywords = ["mcp", "audit", "finance", "tax", "accounting", "gridman", "财税", "审计"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Financial and Insurance Industry",
+]
+
+# 核心依赖：安装稳定、覆盖 32 个工具。server 启动只需 pandas/openpyxl/mcp，
+# 其余均为函数内惰性导入，单个依赖缺失不会导致整个 server 崩溃。
+dependencies = [
+    "pandas>=2.0.0",
+    "openpyxl>=3.0.0",
+    "mcp>=1.0.0",
+    "requests>=2.28.0",
+    "pymupdf>=1.23.0",
+    "python-docx>=1.0.0",
+]
+
+[project.optional-dependencies]
+# 市场数据（A股行情/K线/财务）依赖 akshare。akshare 依赖树重、易冲突，
+# 拆为可选项，避免它安装失败拖垮核心安装。需要股票工具时：
+#   uvx --from "gridman-mcp[market]" gridman-mcp
+market = ["akshare>=1.10.0"]
+# 全功能
+all = ["akshare>=1.10.0"]
+
+[project.urls]
+# Homepage = "https://github.com/zhenxun-charlotte/gridman"  # 待仓库公开后启用
+
+[project.scripts]
+gridman-mcp = "gridman_mcp.server:main"
+
+[tool.setuptools.packages.find]
+include = ["gridman_mcp*"]
+
+# 打包非 .py 数据文件（邮编对照表等）。默认 packages.find 只收 .py，
+# 不显式声明则 wheel 里不含 .json，邮编匹配功能在他人机器上会失效。
+[tool.setuptools.package-data]
+"gridman_mcp" = ["tools/data/*.json"]
+
