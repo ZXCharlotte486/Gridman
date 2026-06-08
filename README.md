@@ -1,6 +1,6 @@
 # 古立特 Gridman — Hyper Agent for Chinese Finance & Tax
 
-财税超级特工古立特。一个入口覆盖中国会计准则（CAS）、税法、审计、投行估值、内控、内审、ESG、政府会计、财务造假识别、经济法、财务BP等全领域，34个专业知识模块。
+财税超级特工古立特。一个入口覆盖中国会计准则（CAS）、税法、审计、投行估值、内控、内审、ESG、政府会计、财务造假识别、经济法、财务BP等全领域，**35 个专业知识模块 + 35 个 MCP 计算工具**。
 
 从底稿编制、分录判断、准则应用，到税务筹划、报表勾稽、财报研究、IPO尽调——处理中国财税场景时的并肩伙伴。
 
@@ -8,31 +8,79 @@
 
 ```
 Gridman/
-├── gridman-skill/       ← 知识层（34模块 + BIOS安装 + 使用说明）
-│   ├── SKILL.md         ← 主文件
-│   ├── INSTALL.md       ← 工具层自动安装固件
-│   ├── references/      ← 34个知识模块
-│   └── payload/         ← 工具层安装包（whl）
+├── gridman-skill/       ← 知识层（35模块 + BIOS安装 + 使用说明）
+│   ├── SKILL.md         ← 主文件（人格 + 路由 + 工作协议）
+│   ├── INSTALL.md       ← 工具层自动安装固件（AI读了自动装）
+│   ├── references/      ← 35个知识模块
+│   ├── payload/         ← 工具层安装包（whl）
+│   ├── 使用说明.txt      ← 给人看的完整指南
+│   └── AI适配引导.md     ← 跨平台接入指南（AI读的）
 └── gridman-app/         ← 工具层（35个MCP计算工具）
-    ├── dist/            ← whl安装包
+    ├── pyproject.toml
     └── gridman_mcp/     ← 源码
+        ├── server.py    ← MCP Server 入口
+        └── tools/       ← 按领域分组
+            ├── audit/   ← 底稿编制（13个）
+            ├── data/    ← 数据处理（6个）
+            ├── document/← 文档处理（6个）
+            ├── finance/ ← 财务分析（5个）
+            └── market/  ← 市场数据（4个）+年报下载
 ```
 
 ## 快速开始
 
-1. 把 `gridman-skill/` 文件夹放到你的 AI Agent 能读到的位置（Kiro 放 `.kiro/skills/gridman/`，Cursor/Claude Code 放项目根目录）
-2. 对 AI 说"装古立特"——AI 自动完成工具层安装
-3. 开始用
+**第一步：放置知识层（零配置）**
 
-详细说明见 [`gridman-skill/README.md`](gridman-skill/README.md) 和 [`gridman-skill/使用说明.txt`](gridman-skill/使用说明.txt)
+把 `gridman-skill/` 文件夹放到你的 AI Agent 能读到的位置：
+
+| Agent | 放置位置 |
+|-------|---------|
+| Kiro | `.kiro/skills/gridman/` |
+| Cursor / Claude Code / Codex | 项目根目录 |
+| Windsurf / Cline | 项目根目录 |
+
+放好后问任何财税问题，古立特就能回答了。
+
+**第二步：安装工具层（一句话搞定，可选）**
+
+对 AI 说一句：**"装古立特"**
+
+AI 自动读取 INSTALL.md，完成 uv 检测 → whl 安装 → MCP 配置写入 → 提示重启。
+
+重启后看到 `gridman Connected (35 tools)` 即成功。
+
+详细说明见 [`gridman-skill/使用说明.txt`](gridman-skill/使用说明.txt)
+
+## 知识模块一览（35个）
+
+| 领域 | 模块 |
+|------|------|
+| 会计准则 | 核心准则 · 高级准则 · 准则应用案例 · 实务判断 · 行业会计 |
+| 审计 | 审计方法论 · 审计程序 · 审计受限/替代程序 |
+| 税务 | 核心税种 · 高级税种 · 税务风险指标 |
+| 投行/评估 | 估值/尽调/IPO/资产评估 |
+| 报表/造假 | 报表勾稽 · 财务造假识别 · 处罚案例 · 监管风险提示 · 财报研究 |
+| 财务/管理 | 凭证/记账 · 业务分录 · 管理会计 · 财务BP · 发票识别 |
+| 法律/内控 | 经济法 · 内部控制 · 内部审计 · 司法会计 |
+| 其他 | ESG · 政府会计 · 咨询方法论 · 实证研究 · MPAcc案例 · 提问框架 · 基层治理 · 财务共享/RPA · 工作流 |
+
+## MCP 工具一览（35个）
+
+| 分组 | 工具 |
+|------|------|
+| 底稿编制 | 银行调节表 · 账龄分析 · 本福特检验 · 折旧重算 · 审计抽样 · 审计调整三栏TB · 截止测试 · 函证生成 · 底稿初始化 · 重要性计算 · 分析性程序 · 科目余额表处理 · 凭证巡检 |
+| 数据处理 | 地址拆分 · 名称模糊匹配 · 往来重分类 · 数据分析（概览/分组/筛选/透视）· 图表生成 |
+| 文档处理 | OCR识别 · 批量OCR · PDF合并/拆分/提取 · 凭证PDF拆分 |
+| 财务分析 | 现金流测算（间接法）· 现金流量表（直接法）· 非经常性损益 · 财务比率 · 纳税调整 |
+| 市场数据 | A股行情 · 历史K线 · 财务数据 · 年报/公告下载 |
 
 ## 适配环境
 
-| 环境 | 适配程度 |
-|------|---------|
-| Kiro / Cursor / Claude Code | ⭐⭐⭐ 最佳 |
-| Codex / Windsurf / Cline | ⭐⭐ 可用 |
-| OpenClaw / LobeChat / Cherry Studio | ⭐ 基本可用 |
+| 环境 | 适配程度 | 说明 |
+|------|---------|------|
+| Kiro / Cursor / Claude Code | ⭐⭐⭐ 最佳 | Skill 读取 + MCP 工具 + 文件操作全支持 |
+| Codex / Windsurf / Cline | ⭐⭐ 可用 | 支持 MCP 的均可接入 |
+| OpenClaw / LobeChat / Cherry Studio | ⭐ 基本可用 | 知识问答能用，工具联动体验有限 |
 
 ## 许可证
 
@@ -45,4 +93,4 @@ Gridman/
 
 ---
 
-*v1.9.0 · 作者：真寻Charlotte*
+*v1.9.0 · 35 知识模块 · 35 MCP 工具 · 作者：真寻Charlotte*
