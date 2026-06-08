@@ -18,7 +18,7 @@ classifiers = [
     "Intended Audience :: Financial and Insurance Industry",
 ]
 
-# 核心依赖：安装稳定、覆盖 32 个工具。server 启动只需 pandas/openpyxl/mcp，
+# 核心依赖：安装稳定、覆盖 35 个工具。server 启动只需 pandas/openpyxl/mcp，
 # 其余均为函数内惰性导入，单个依赖缺失不会导致整个 server 崩溃。
 dependencies = [
     "pandas>=2.0.0",
