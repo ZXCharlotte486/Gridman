@@ -1,6 +1,6 @@
 # 古立特 Skill（知识层）
 
-财税超级特工古立特的知识指引层。34 个专业模块，覆盖会计准则、税法、审计、内控、内审、投行、ESG、政府会计、财务造假识别、经济法等全领域。
+财税超级特工古立特的知识指引层。35 个专业模块，覆盖会计准则、税法、审计、内控、内审、投行、ESG、政府会计、财务造假识别、经济法等全领域。
 
 配合 gridman-app（MCP 工具层）使用可获得完整的"判断 + 计算"能力；单独使用时作为财税知识顾问。
 
@@ -11,7 +11,7 @@
 
 知识层（本目录）          工具层（gridman-app）
 ├── SKILL.md             ├── 35 个 Python 工具
-├── references/ (34模块)  ├── 银行调节/账龄/抽样/截止/函证/重分类...
+├── references/ (35模块)  ├── 银行调节/账龄/抽样/截止/函证/重分类...
 └── payload/*.whl        └── 通过 MCP 协议被 AI 调用
      ↑
      安装包就在这里
@@ -29,7 +29,7 @@
 | **Cursor**                               | ⭐⭐⭐ 良好 | 放进项目，AI 可读取 SKILL.md + 调用 MCP                                                                                                            |
 | **Claude Code**                          | ⭐⭐⭐ 良好 | 同上                                                                                                                                               |
 | **Codex / Windsurf**                     | ⭐⭐ 可用   | 支持 MCP 的均可接入                                                                                                                                |
-| **OpenClaw / LobeChat 等技能商店型平台** | ⭐ 基本可用 | 知识问答能用，但路由判断和工具调用体验较差——这类平台的 Skill 加载机制偏简单，对古立特这种"34 模块 + 巨型路由表 + MCP 工具联动"的复杂技能支持有限 |
+| **OpenClaw / LobeChat 等技能商店型平台** | ⭐ 基本可用 | 知识问答能用，但路由判断和工具调用体验较差——这类平台的 Skill 加载机制偏简单，对古立特这种"35 模块 + 巨型路由表 + MCP 工具联动"的复杂技能支持有限 |
 | **Cherry Studio / 通用对话 AI**          | ⭐ 基本可用 | 可导入知识库做问答，无法调用工具层                                                                                                                 |
 
 **总结**：古立特最适配"以代码编辑器/IDE 为主体的 AI Agent"（Kiro/Cursor/Claude Code），这类环境对 Skill 文件的读取、MCP 工具调用、文件操作支持最完整。技能商店型平台（OpenClaw/LobeChat）能装能用，但发挥不出古立特的完整能力。
@@ -155,27 +155,32 @@
 ```
 gridman-skill/
 ├── SKILL.md                    ← 主入口（人格、路由、工作协议）
+├── INSTALL.md                  ← 工具层自动安装固件（AI读了自动装）
 ├── README.md                   ← 本文件
 ├── AI适配引导.md                ← 跨平台安装：引导目标平台 AI 自行接入
-└── references/                 ← 34 个知识模块
+├── 使用说明.txt                 ← 给人看的完整指南
+├── payload/
+│   └── gridman_mcp-1.9.0-py3-none-any.whl  ← 工具层安装包
+└── references/                 ← 35 个知识模块
     ├── accounting_core.md          会计准则（第1-17章）
     ├── accounting_advanced.md      会计准则（第18-29章）
-    ├── audit.md                    审计准则与程序
+    ├── audit.md                    审计准则与方法论
     ├── audit_procedures.md         审计程序详细操作
+    ├── audit_if_lines.md           审计受限/替代程序/决策树
     ├── tax_core.md                 增值税/企业所得税/个税
     ├── tax_advanced.md             小税种/国际税收/征管
-    ├── tax_risk_indicators.md      金税四期/税务风险
+    ├── tax_risk_indicators.md      金税四期/税务风险/稽查程序
     ├── investment.md               投行/估值/资产评估
     ├── financial_fraud.md          财务造假识别（16案例）
-    ├── financial_bp.md             财务BP/经营分析
-    ├── management_accounting.md    管理会计
+    ├── financial_bp.md             财务BP/经营分析/跨境电商
+    ├── management_accounting.md    管理会计/哈佛框架/Z-Score
     ├── internal_control.md         内控/战略
     ├── internal_audit.md           内部审计/数智化转型
-    ├── economic_law.md             经济法
+    ├── economic_law.md             经济法/涉税文书
     ├── government_npo_accounting.md 政府/非营利组织会计
-    ├── esg.md                      ESG
-    ├── consulting.md               结构化思维
-    ├── statement.md                报表勾稽/异常识别
+    ├── esg.md                      ESG/碳排放
+    ├── consulting.md               结构化思维/MECE
+    ├── statement.md                报表勾稽/异常识别/行业指标
     ├── finance.md                  财务数字化/凭证
     ├── business_patterns.md        多步业务模式识别
     ├── forensic_accounting.md      司法会计/验资
@@ -189,7 +194,7 @@ gridman-skill/
     ├── workflows.md                端到端工作流
     ├── mpacc_case_template.md      MPAcc案例模板
     ├── empirical_research.md       实证研究方法
-    ├── political_economy.md        政治经济学
-    ├── governance_logic.md         基层治理逻辑
-    └── songs.md                    古立特主题曲
+    ├── questioning_framework.md    提问框架/职业怀疑训练
+    ├── industry_accounting.md      行业会计（房地产/建筑/SaaS/电商等）
+    └── governance_logic.md         基层治理逻辑
 ```
