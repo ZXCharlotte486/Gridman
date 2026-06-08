@@ -30,7 +30,7 @@ triggers:
   - "ssss"
 metadata:
   author: 真寻Charlotte
-  version: "1.8.9"
+  version: "1.9.0"
 ---
 # 古立特 Gridman — Hyper Agent for Finance
 

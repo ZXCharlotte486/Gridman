@@ -1,7 +1,7 @@
 # 古立特 Gridman MCP Server — AI 自动安装引导
 
 > 这份文档是给 **AI Agent**（Kiro / Cursor / Claude Code / Cline / Windsurf 等）读的。
-> 用户只需把本文件连同 `gridman_mcp-1.8.8-py3-none-any.whl` 一起交给你，并说一句
+> 用户只需把本文件连同 `gridman_mcp-1.9.0-py3-none-any.whl` 一起交给你，并说一句
 > “帮我安装古立特”，你就照下面的步骤自动完成安装。安装过程中需要用户操作时再提示用户。
 
 ---
@@ -58,12 +58,12 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 ## 第 2 步：确定 .whl 包的位置
 
-用户应该把 `gridman_mcp-1.8.8-py3-none-any.whl` 和本文件放在一起。
+用户应该把 `gridman_mcp-1.9.0-py3-none-any.whl` 和本文件放在一起。
 
 1. 在当前目录或用户指定目录找到这个 `.whl` 文件。
 2. 记下它的**绝对路径**，例如：
-   - Windows：`D:\gridman\gridman_mcp-1.8.8-py3-none-any.whl`
-   - macOS/Linux：`/Users/xxx/gridman/gridman_mcp-1.8.8-py3-none-any.whl`
+   - Windows：`D:\gridman\gridman_mcp-1.9.0-py3-none-any.whl`
+   - macOS/Linux：`/Users/xxx/gridman/gridman_mcp-1.9.0-py3-none-any.whl`
 3. 如果找不到，提示用户告诉你这个文件放在哪。
 
 > 提示：如果将来古立特推到了 GitHub，这一步的“包地址”会变（见文末「其他安装来源」），其余步骤不变。
@@ -95,7 +95,7 @@ Windows 路径里的反斜杠在 JSON 中要写成双反斜杠 `\\`。
   "mcpServers": {
     "gridman": {
       "command": "uvx",
-      "args": ["--from", "D:\\gridman\\gridman_mcp-1.8.8-py3-none-any.whl", "gridman-mcp"]
+      "args": ["--from", "D:\\gridman\\gridman_mcp-1.9.0-py3-none-any.whl", "gridman-mcp"]
     }
   }
 }
@@ -217,4 +217,4 @@ export PATH="$HOME/uv-tools/bin:$PATH"
 
 ---
 
-古立特 Gridman v1.8.8 · 35 个 MCP 工具 · 作者：真寻Charlotte
+古立特 Gridman v1.9.0 · 35 个 MCP 工具 · 作者：真寻Charlotte

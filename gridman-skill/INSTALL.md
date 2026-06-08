@@ -41,7 +41,7 @@ whl 文件在本文件同级的 `payload/` 目录下：
 payload/gridman_mcp-*.whl
 ```
 
-你知道自己正在读的这份 INSTALL.md 所在的目录路径，往下拼 `payload/gridman_mcp-1.8.9-py3-none-any.whl` 即可。
+你知道自己正在读的这份 INSTALL.md 所在的目录路径，往下拼 `payload/gridman_mcp-1.9.0-py3-none-any.whl` 即可。
 
 如果找不到 payload/ 或里面没有 whl 文件，问用户："whl 安装包放在哪了？告诉我路径。"
 
@@ -145,4 +145,4 @@ Windows PowerShell：
 
 ---
 
-*古立特 Gridman v1.8.9 · 35 个 MCP 工具 · Access Flash.*
+*古立特 Gridman v1.9.0 · 35 个 MCP 工具 · Access Flash.*

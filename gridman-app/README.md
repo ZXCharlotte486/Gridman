@@ -1,6 +1,6 @@
 # 古立特 MCP Server（App 形态）
 
-财税超级特工古立特的计算层。当前版本 **v1.8.8**，提供 **35 个 MCP 工具**，覆盖底稿全流程（计划→风险→实质性程序→完成→报告）+ 文档识别 + PDF 工具 + 数据分析 + 市场数据 + 报表分析。
+财税超级特工古立特的计算层。当前版本 **v1.9.0**，提供 **35 个 MCP 工具**，覆盖底稿全流程（计划→风险→实质性程序→完成→报告）+ 文档识别 + PDF 工具 + 数据分析 + 市场数据 + 报表分析。
 
 基于标准 **MCP 协议**，可在任意支持 MCP 的 AI Agent 中使用：Kiro、Cursor、Claude Code、Cline、Windsurf 等。
 
@@ -26,7 +26,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 ### 配置 Agent
 
-在你的 Agent 的 MCP 配置文件里加入下面这段。把 `<WHL绝对路径>` 换成你拿到的 `gridman_mcp-1.8.8-py3-none-any.whl` 的真实路径（Windows 路径里的反斜杠在 JSON 中写成 `\\`）：
+在你的 Agent 的 MCP 配置文件里加入下面这段。把 `<WHL绝对路径>` 换成你拿到的 `gridman_mcp-1.9.0-py3-none-any.whl` 的真实路径（Windows 路径里的反斜杠在 JSON 中写成 `\\`）：
 
 ```json
 {
@@ -46,7 +46,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
   "mcpServers": {
     "gridman": {
       "command": "uvx",
-      "args": ["--from", "D:\\gridman\\gridman_mcp-1.8.8-py3-none-any.whl", "gridman-mcp"]
+      "args": ["--from", "D:\\gridman\\gridman_mcp-1.9.0-py3-none-any.whl", "gridman-mcp"]
     }
   }
 }

@@ -45,4 +45,4 @@ Gridman/
 
 ---
 
-*v1.8.8 · 作者：真寻Charlotte*
+*v1.9.0 · 作者：真寻Charlotte*
