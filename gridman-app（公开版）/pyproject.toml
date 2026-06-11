@@ -1,0 +1,71 @@
+[build-system]
+requires = ["setuptools>=64", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gridman-mcp"
+version = "2.0.0"
+description = "古立特 Gridman MCP Server — 财税审计计算工具（跨 AI Agent 通用，uvx 一键启动）"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "真寻Charlotte" }]
+keywords = ["mcp", "audit", "finance", "tax", "accounting", "gridman", "财税", "审计"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Financial and Insurance Industry",
+]
+
+# 核心依赖（base，恒装）：server 启动 + 绝大多数数据/审计/财务工具所需。
+# 仅 pandas/openpyxl/mcp/requests——安装最稳、体积最小。
+# 其余按功能类别拆为 extras，名字与 GRIDMAN_TOOLS 的 6 大类别一一对应。
+dependencies = [
+    "pandas>=2.0.0",
+    "openpyxl>=3.0.0",
+    "mcp>=1.0.0",
+    "requests>=2.28.0",
+]
+
+[project.optional-dependencies]
+# ── 按功能类别拆分依赖，名字与 GRIDMAN_TOOLS 类别对齐 ──
+# 装哪档依赖（pip extra）与开哪类工具（GRIDMAN_TOOLS）用同一套类别名：
+#   做审计 → pip install "gridman-mcp[audit]" + GRIDMAN_TOOLS=审计,数据
+# 各 extra 内部依赖均为函数内惰性导入，缺失时对应工具返回友好提示，不崩 server。
+
+# 数据：图表生成（chart_generate）需 matplotlib；其余数据工具 base 即可
+data = ["matplotlib>=3.7.0"]
+# 文档：PDF 合并/拆分/提取/凭证拆分需 pymupdf；OCR 走云端仅需 base 的 requests
+document = ["pymupdf>=1.23.0"]
+# 审计：函证/底稿生成 Word 需 python-docx；其余审计工具 base 即可
+audit = ["python-docx>=1.0.0"]
+# 财务：base 即可，无额外依赖（保留空 extra 以保持 6 类命名整齐）
+finance = []
+# 市场：A股行情/K线/财务需 akshare（依赖树重、易冲突，单列）
+market = ["akshare>=1.10.0"]
+# 办公：Excel/Word/PPT 实时操控需 pywin32（仅 Windows，COM 接口）
+office = ["pywin32>=306"]
+# 全功能：6 类依赖全装
+all = [
+    "matplotlib>=3.7.0",
+    "pymupdf>=1.23.0",
+    "python-docx>=1.0.0",
+    "akshare>=1.10.0",
+    "pywin32>=306",
+]
+
+[project.urls]
+# Homepage = "https://github.com/zhenxun-charlotte/gridman"  # 待仓库公开后启用
+
+[project.scripts]
+gridman-mcp = "gridman_mcp.server:main"
+
+[tool.setuptools.packages.find]
+include = ["gridman_mcp*"]
+
+# 打包非 .py 数据文件（邮编对照表等）。默认 packages.find 只收 .py，
+# 不显式声明则 wheel 里不含 .json，邮编匹配功能在他人机器上会失效。
+[tool.setuptools.package-data]
+"gridman_mcp" = ["tools/data/*.json"]
+
