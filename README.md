@@ -8,9 +8,12 @@
 
 ```
 Gridman/
-├── gridman-skill（公开版）/            ← 知识层（35 个模块 + 18 个工作流）
+├── gridman-skill（公开版）/            ← 知识层（35 个模块 + 19 个工作流）
 │   ├── SKILL.md                        ← 主文件（人格 + 路由 + 工作协议）
 │   ├── INSTALL.md                      ← 工具层自动安装固件（AI 读了自动装）
+│   ├── operations/                     ← 操作参考（工具清单 + 法规源目录）
+│   │   ├── mcp_tools.md                ← 40 个业务工具完整清单 + 行为约束
+│   │   └── source_directory.md         ← 法规 / 准则官方源入口目录
 │   ├── references/
 │   │   ├── knowledge/                  ← 32 个学科模块（按 8 学科分目录）
 │   │   │   ├── accounting/             ← 会计准则与分录（7）
@@ -21,20 +24,26 @@ Gridman/
 │   │   │   ├── compliance/             ← 经济法 / 监管 / 处罚（4）
 │   │   │   ├── specialized/            ← 凭证记账 / 政府会计 / 财务共享（3）
 │   │   │   └── academic/               ← 学术 / MPAcc（2）
-│   │   ├── workflows/                  ← 18 个端到端工作流（6 个职业子目录）
+│   │   ├── workflows/                  ← 19 个端到端工作流（6 个职业子目录）
+│   │   │   ├── audit/                  ← 审计（10）
+│   │   │   ├── bp/                     ← 财务 BP（1）
+│   │   │   ├── finance/                ← 财务核算（2）
+│   │   │   ├── investment/             ← 投研（3）
+│   │   │   ├── tax/                    ← 税务（1）
+│   │   │   └── verification/           ← 输出核验（1）
 │   │   └── extra/                      ← 方法论 3（咨询 / 治理 / 提问）
-│   ├── payload/                        ← 工具层安装包（whl）
-└── gridman-app（公开版）/              ← 工具层（45 个 MCP 工具，按 6 类分组）
+│   └── payload/                        ← 工具层安装包（whl）
+└── gridman-app（公开版）/              ← 工具层（40 个 MCP 业务工具 + 1 meta，按 6 类分组）
     ├── pyproject.toml
     └── gridman_mcp/
         ├── server.py                   ← MCP Server 入口（含按需门控 GRIDMAN_TOOLS）
         └── tools/
-            ├── data/                   ← 数据处理（8）
-            ├── document/               ← 文档与 OCR（6）
+            ├── data/                   ← 数据处理（5）
+            ├── document/               ← 文档与 OCR（3）
             ├── audit/                  ← 底稿编制（13）
-            ├── finance/                ← 财务分析（5）
+            ├── finance/                ← 财务分析（9）
             ├── market/                 ← 行情 / K 线 / 财报 / 公告下载（4）
-            └── office/                 ← Excel/Word/PPT 实时协同（9，仅 Windows）
+            └── office/                 ← Excel/Word/PPT 实时协同（5，仅 Windows）
 ```
 
 ## 快速开始
@@ -104,4 +113,4 @@ AI 自动读取 INSTALL.md，完成 uv 检测 → whl 安装 → MCP 配置写�
 
 ---
 
-*v2.1.1 · 35 知识模块 · 45 MCP 工具 · 18 工作流 · 作者：真寻Charlotte*
+*v2.1.1 · 35 知识模块 · 40 MCP 业务工具 · 19 工作流 · 作者：真夏Charlotte*
