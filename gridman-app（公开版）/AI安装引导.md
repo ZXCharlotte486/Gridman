@@ -1,7 +1,7 @@
 # 古立特 Gridman MCP Server — AI 自动安装引导
 
 > 这份文档是给 **AI Agent**（Kiro / Cursor / Claude Code / Cline / Windsurf 等）读的。
-> 用户只需把本文件连同 `gridman_mcp-2.0.0-py3-none-any.whl` 一起交给你，并说一句
+> 用户只需把本文件连同 `gridman_mcp-2.1.1-py3-none-any.whl` 一起交给你，并说一句
 > “帮我安装古立特”，你就照下面的步骤自动完成安装。安装过程中需要用户操作时再提示用户。
 
 ---
@@ -58,12 +58,12 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 ## 第 2 步：确定 .whl 包的位置
 
-用户应该把 `gridman_mcp-2.0.0-py3-none-any.whl` 和本文件放在一起。
+用户应该把 `gridman_mcp-2.1.1-py3-none-any.whl` 和本文件放在一起。
 
 1. 在当前目录或用户指定目录找到这个 `.whl` 文件。
 2. 记下它的**绝对路径**，例如：
-   - Windows：`D:\gridman\gridman_mcp-2.0.0-py3-none-any.whl`
-   - macOS/Linux：`/Users/xxx/gridman/gridman_mcp-2.0.0-py3-none-any.whl`
+   - Windows：`D:\gridman\gridman_mcp-2.1.1-py3-none-any.whl`
+   - macOS/Linux：`/Users/xxx/gridman/gridman_mcp-2.1.1-py3-none-any.whl`
 3. 如果找不到，提示用户告诉你这个文件放在哪。
 
 > 提示：如果将来古立特推到了 GitHub，这一步的“包地址”会变（见文末「其他安装来源」），其余步骤不变。
@@ -95,7 +95,7 @@ Windows 路径里的反斜杠在 JSON 中要写成双反斜杠 `\\`。
   "mcpServers": {
     "gridman": {
       "command": "uvx",
-      "args": ["--from", "D:\\gridman\\gridman_mcp-2.0.0-py3-none-any.whl", "gridman-mcp"]
+      "args": ["--from", "D:\\gridman\\gridman_mcp-2.1.1-py3-none-any.whl", "gridman-mcp"]
     }
   }
 }
@@ -171,7 +171,7 @@ Windows 路径里的反斜杠在 JSON 中要写成双反斜杠 `\\`。
 }
 ```
 
-- 不设 / `all` / `全部` / `*` → 全部 45 个工具（向后兼容）
+- 不设 / `all` / `全部` / `*` → 全部 44 个业务工具 + 1 个 meta = 45 个（向后兼容；gridman_locate 常驻不受门控）
 - 逗号分隔指定 → 只挂这些类别（无效名忽略并告警；全无效则兜底全开）
 
 **配合使用**：装的依赖和开的工具用**同一套类别名**——做审计就 `[audit,document]` + `GRIDMAN_TOOLS=审计,文档,数据`。
@@ -180,7 +180,7 @@ Windows 路径里的反斜杠在 JSON 中要写成双反斜杠 `\\`。
 
 ## 可选：OCR 文档识别（document_ocr）
 
-`document_ocr` / `document_ocr_batch` 调用 MinerU 云端 API，需要 Token。在配置里加 `env`：
+`document_ocr` 调用 MinerU 云端 API，需要 Token。在配置里加 `env`：
 
 ```json
 {
@@ -195,7 +195,33 @@ Windows 路径里的反斜杠在 JSON 中要写成双反斜杠 `\\`。
 ```
 
 Token 获取：https://mineru.net → 登录 → 顶部 API → 左侧"智能解析 → API 管理" → 创建 Token。
-不配 Token 只影响这 2 个 OCR 工具，其余工具照常用。
+不配 Token 只影响 OCR 工具，其余工具照常用。
+
+---
+
+## 可选（推荐）：锁定记忆区位置（GRIDMAN_MIND）
+
+古立特的记忆区 `gridman-mind`（项目档案、企业缓存、工具产出）默认按这个顺序定位：
+`GRIDMAN_MIND` 环境变量 → `~/.gridman/home.json` 指针 → 当前工作目录(CWD)的同级目录兜底。
+
+**为什么建议显式设**：uvx 启动 server 时，进程的 CWD 由宿主 Agent 决定、并不可控；若没设过指针，兜底会按 CWD 推算 mind 的位置，可能落在你不期望的地方。设了 `GRIDMAN_MIND` 就一锤定音——无论从哪个 Agent、哪个工作目录启动，记忆都进同一个固定目录，不会"失忆"或散落多处。
+
+在配置里加 `env`（值填你想放记忆区的绝对路径）：
+
+```json
+{
+  "mcpServers": {
+    "gridman": {
+      "command": "uvx",
+      "args": ["--from", "<WHL绝对路径>", "gridman-mcp"],
+      "env": { "GRIDMAN_MIND": "D:\\gridman\\gridman-mind" }
+    }
+  }
+}
+```
+
+目录不存在会自动创建。多个 `env` 项（如同时配 `GRIDMAN_TOOLS`、`MINERU_API_TOKEN`）写在同一个 `env` 对象里即可。
+首次调用 `gridman_locate` 时，返回里的 `mind_source` 会显示 `env`（已锁定）/ `pointer`（读指针）/ `cwd`（按工作目录兜底，建议改设 GRIDMAN_MIND）。
 
 ---
 
@@ -258,4 +284,4 @@ export PATH="$HOME/uv-tools/bin:$PATH"
 
 ---
 
-古立特 Gridman v2.0.0 · 45 个 MCP 工具 · 作者：真寻Charlotte
+古立特 Gridman v2.1.1 · 45 个 MCP 工具 · 作者：真寻Charlotte

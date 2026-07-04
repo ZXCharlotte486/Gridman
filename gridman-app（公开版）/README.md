@@ -1,6 +1,6 @@
 # 古立特 MCP Server（App 形态）
 
-财税超级特工古立特的计算层。当前版本 **v2.0.0**，提供 **45 个 MCP 工具**，按 6 大功能类别（数据 / 文档 / 审计 / 财务 / 市场 / 办公）组织，覆盖底稿全流程（计划→风险→实质性程序→完成→报告）+ 文档识别 + PDF 工具 + 数据分析 + 市场数据 + 报表分析 + Office 实时协同。支持按职业**按需安装**（见下）。
+财税超级特工古立特的计算层。当前版本 **v2.1.1**，提供 **44 个业务工具 + 1 个 meta 工具 (gridman_locate) = 45 个 MCP 工具**，按 6 大功能类别（数据 / 文档 / 审计 / 财务 / 市场 / 办公）组织，覆盖底稿全流程（计划→风险→实质性程序→完成→报告）+ 文档识别 + PDF 工具 + 数据分析 + 市场数据 + 报表分析 + Office 实时协同。支持按职业**按需安装**（见下）。
 
 基于标准 **MCP 协议**，可在任意支持 MCP 的 AI Agent 中使用：Kiro、Cursor、Claude Code、Cline、Windsurf 等。
 
@@ -26,7 +26,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 ### 配置 Agent
 
-在你的 Agent 的 MCP 配置文件里加入下面这段。把 `<WHL绝对路径>` 换成你拿到的 `gridman_mcp-2.0.0-py3-none-any.whl` 的真实路径（Windows 路径里的反斜杠在 JSON 中写成 `\\`）：
+在你的 Agent 的 MCP 配置文件里加入下面这段。把 `<WHL绝对路径>` 换成你拿到的 `gridman_mcp-2.1.1-py3-none-any.whl` 的真实路径（Windows 路径里的反斜杠在 JSON 中写成 `\\`）：
 
 ```json
 {
@@ -46,7 +46,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
   "mcpServers": {
     "gridman": {
       "command": "uvx",
-      "args": ["--from", "D:\\gridman\\gridman_mcp-2.0.0-py3-none-any.whl", "gridman-mcp"]
+      "args": ["--from", "D:\\gridman\\gridman_mcp-2.1.1-py3-none-any.whl", "gridman-mcp"]
     }
   }
 }
@@ -76,7 +76,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 |-------|---------|---------|
 | 核心（默认，不带 extra） | 数据/审计/财务大部分工具 | pandas/openpyxl/mcp/requests |
 | `[data]` | 图表生成 | matplotlib |
-| `[document]` | PDF 合并/拆分/提取/凭证拆分 | pymupdf |
+| `[document]` | PDF 工具 / 凭证拆分 | pymupdf |
 | `[audit]` | 函证/底稿 Word 生成 | python-docx |
 | `[finance]` | （无额外依赖） | — |
 | `[market]` | A股行情/K线/财务 | akshare |
@@ -106,7 +106,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 ### 配置 MinerU OCR（可选）
 
-`document_ocr` / `document_ocr_batch` 调用 MinerU 云端 API，需要 Token。在配置里加 `env`：
+`document_ocr` 调用 MinerU 云端 API，需要 Token。在配置里加 `env`：
 
 ```json
 {
@@ -120,7 +120,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 }
 ```
 
-获取 Token：见文末「MinerU Token」一节。不配只影响这 2 个 OCR 工具，其余工具照常用。
+获取 Token：见文末「MinerU Token」一节。不配只影响 OCR 工具，其余工具照常用。
 
 ---
 
@@ -152,7 +152,7 @@ pip install -e ".[all]" -i https://pypi.tuna.tsinghua.edu.cn/simple
     "gridman": {
       "command": "你的路径/.venv/Scripts/python.exe",
       "args": ["-m", "gridman_mcp.server"],
-      "cwd": "你的路径/gridman-app"
+      "cwd": "你的路径/gridman-mcp"
     }
   }
 }
@@ -178,9 +178,9 @@ uv build
 
 ---
 
-## 工具列表（45 个）
+## 工具列表（44 个业务工具 + 1 个 meta）
 
-> 按 6 大功能类别组织，与 `GRIDMAN_TOOLS` 门控类别一致。标注的 pip extra 为该类别部分工具所需。
+> 按 6 大功能类别组织，与 `GRIDMAN_TOOLS` 门控类别一致。`gridman_locate`（meta）不受门控、始终注册。标注的 pip extra 为该类别部分工具所需。
 
 ### 数据（8 个）
 
@@ -195,15 +195,12 @@ uv build
 | `fuzzy_match` | 名称模糊匹配（应收应付对账、关联方识别） |
 | `chart_generate` | 统计图表生成（折线/柱状/饼/散点/热力/堆积/瀑布，PNG/Excel；需 `[data]`） |
 
-### 文档（6 个，PDF 工具需 `[document]`）
+### 文档（3 个，PDF 工具需 `[document]`）
 
 | 工具 | 功能 |
 |------|------|
-| `document_ocr` | 文档识别（PDF/图片/Office → Markdown，MinerU 云端） |
-| `document_ocr_batch` | 批量文档识别（≤ 200 文件，自动分批并行） |
-| `pdf_merge` | PDF 合并 |
-| `pdf_split` | PDF 按页码范围拆分 |
-| `pdf_extract` | PDF 提取指定页面 |
+| `document_ocr` | 文档识别（PDF/图片/Office → Markdown，MinerU 云端，支持批量） |
+| `pdf_pages` | PDF 页面操作（合并 / 拆分 / 提取指定页面） |
 | `voucher_pdf_split` | 记账凭证 PDF 按凭证号自动拆分 |
 
 ### 审计（13 个，函证/底稿需 `[audit]`）
@@ -224,7 +221,7 @@ uv build
 | `reclassification` | 往来款重分类（CAS 30，按余额方向列报） |
 | `voucher_scan` | 凭证巡检（七大类高风险业务模式，自动标记可疑项） |
 
-### 财务（5 个）
+### 财务（9 个）
 
 | 工具 | 功能 |
 |------|------|
@@ -233,8 +230,12 @@ uv build
 | `non_recurring_items` | 非经常性损益计算（证监会定义，扣非净利润） |
 | `financial_ratios` | 财务比率分析（变现/周转/负债/盈利/每股） |
 | `tax_adjustment` | 纳税调整明细（税会差异，对应 A105000） |
+| `pvm_decompose` | PVM 量价差五效应分解（毛利率/收入驱动诊断） |
+| `structure_rate_attribution` | 单位指标变动归因（结构效应 / 费率效应） |
+| `dimension_explainer` | 多维利润质量诊断（维度解释力 η² + 规模质量矩阵） |
+| `concentration_hhi` | HHI 赫芬达尔集中度（客户/供应商/渠道集中风险） |
 
-### 市场（4 个，需 `[market]` 扩展）
+### 市场（6 个，需 `[market]` 扩展）
 
 | 工具 | 功能 |
 |------|------|
@@ -242,20 +243,18 @@ uv build
 | `stock_history` | 历史 K 线（A股/港股/美股，日/周/月，前复权/后复权） |
 | `stock_financial` | A 股财务数据（利润表/资产负债表/现金流量表） |
 | `report_download` | 上市公司年报/公告批量下载（巨潮资讯网，无需 API Key） |
+| `company_search` | 企业模糊搜索（名称/简称/税号，返回基础工商信息） |
+| `company_query` | 企业工商 + 风险画像（注册资本/股东/对外投资/经营异常等，需风鸟 Key） |
 
-### 办公（9 个，需 `[office]` 扩展，仅 Windows）
+### 办公（5 个，需 `[office]` 扩展，仅 Windows）
 
 | 工具 | 功能 |
 |------|------|
 | `office_list_apps` | 检测运行中的办公应用（M365 / WPS 的 Excel/Word/PPT） |
-| `office_excel_read` | 读取打开的 Excel/WPS 表格区域 |
-| `office_excel_write` | 写入数据到打开的表格（实时显示） |
-| `office_excel_formula` | 在打开的表格设置公式 |
-| `office_word_read` | 读取打开的 Word/WPS 文字文档 |
-| `office_word_append` | 在打开的文档末尾追加文本 |
-| `office_save_as` | 当前文档另存为（含 WPS 私有格式转标准格式/PDF） |
-| `office_ppt_info` | 获取打开的演示文稿信息（幻灯片列表） |
-| `office_ppt_add_slide` | 在演示文稿末尾添加幻灯片 |
+| `excel_op` | 当前表格操作（读区域 / 写数据 / 设公式，通过 action 参数切换） |
+| `word_op` | 当前文字文档操作（读全文 / 末尾追加，通过 action 参数切换） |
+| `office_save_as` | 当前文档另存为（支持 WPS 私有格式转标准格式 / PDF） |
+| `ppt_op` | 当前演示文稿操作（获取信息 / 添加幻灯片，通过 action 参数切换） |
 
 ---
 
@@ -269,14 +268,6 @@ uv build
 6. 粘贴到 MCP 配置的 `env.MINERU_API_TOKEN`
 
 注意：Token 有效期 **90 天**；每天 **1000 页**免费额度；单文件 ≤ 200MB / 600 页。
-
----
-
-## 维护脚本
-
-项目根目录（`Gridman古立特/`）下：
-
-- `sync_skill.ps1`：把 `.kiro/skills/gridman/` 单向镜像到 `gridman-skill/`，保持两个 Skill 副本一致。每次改 Skill 后跑一次。
 
 ---
 

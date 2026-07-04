@@ -41,7 +41,7 @@ whl 文件在本文件同级的 `payload/` 目录下：
 payload/gridman_mcp-*.whl
 ```
 
-你知道自己正在读的这份 INSTALL.md 所在的目录路径，往下拼 `payload/gridman_mcp-2.0.0-py3-none-any.whl` 即可。
+你知道自己正在读的这份 INSTALL.md 所在的目录路径，往下拼 `payload/gridman_mcp-2.1.1-py3-none-any.whl` 即可。
 
 如果找不到 payload/ 或里面没有 whl 文件，问用户："whl 安装包放在哪了？告诉我路径。"
 
@@ -101,7 +101,7 @@ payload/gridman_mcp-*.whl
 
 1. 提示用户**重启 Agent**（或在 MCP 面板点 Reconnect）
 2. 首次连接 uvx 会自动下载依赖（10–60 秒），正常现象
-3. 成功标志：MCP 面板显示 **gridman** 已连接，约 **45 个工具**（默认全开；可用 GRIDMAN_TOOLS 精简，见下方"按需安装"）
+3. 成功标志：MCP 面板显示 **gridman** 已连接，约 **44 个业务工具 + 1 个 meta (gridman_locate) = 45 个**（默认全开；可用 GRIDMAN_TOOLS 精简，见下方"按需安装"）
 4. 快速验证：调用 `materiality_calculator` 或问"帮我算重要性水平"
 
 ---
@@ -131,7 +131,7 @@ payload/gridman_mcp-*.whl
 "env": { "GRIDMAN_TOOLS": "审计,数据,文档" }
 ```
 
-- 不设 / `all` / `全部` / `*` → 全部 45 个工具（向后兼容）
+- 不设 / `all` / `全部` / `*` → 全部 44 个业务工具 + 1 个 meta = 45 个（向后兼容）
 - 逗号分隔指定 → 只挂这些类别（无效名忽略并告警；全无效则兜底全开）
 
 **配合使用**：装的依赖和开的工具用**同一套类别名**。做审计 → `"<WHL路径>[audit,document]"` + `GRIDMAN_TOOLS=审计,文档,数据`。
@@ -155,6 +155,19 @@ Windows PowerShell：
 [Environment]::SetEnvironmentVariable("UV_CACHE_DIR", "D:\uv\cache", "User")
 [Environment]::SetEnvironmentVariable("UV_TOOL_DIR", "D:\uv\tools", "User")
 ```
+
+### C. 锁定记忆区位置（GRIDMAN_MIND，推荐）
+
+古立特的记忆区 `gridman-mind`（项目档案、企业缓存、工具产出）默认按这个顺序定位：
+`GRIDMAN_MIND` 环境变量 → `~/.gridman/home.json` 指针 → 当前工作目录兜底。
+
+**建议显式设**：uvx 启动 server 时进程 CWD 由宿主 Agent 决定、不可控。没设过指针的话兜底可能落在不期望的位置。设了 `GRIDMAN_MIND` 就一锤定音——无论从哪个 Agent 启动，记忆都进同一个固定目录。
+
+```json
+"env": { "GRIDMAN_MIND": "D:\\gridman\\gridman-mind" }
+```
+
+目录不存在会自动创建。多个 `env` 项写在同一个 `env` 对象里即可。
 
 ---
 
@@ -180,4 +193,4 @@ Windows PowerShell：
 
 ---
 
-*古立特 Gridman v2.0.0 · 45 个 MCP 工具 · Access Flash.*
+*古立特 Gridman v2.1.1 · 44 个业务工具 + 1 个 meta = 45 个 · Access Flash.*

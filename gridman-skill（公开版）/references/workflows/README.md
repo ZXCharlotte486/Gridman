@@ -5,7 +5,7 @@
 > 覆盖：应收审计、银行审计、固定资产审计、凭证数字化、总账分析、月结、财报分析、函证、报表勾稽、IPO尽调、审计调整、截止测试、底稿全流程、财务比率分析、现金流量表编制、纳税调整、个股排雷
 > 性质：实操
 >
-> 拆分说明（2026-06-09 三层重构）：原 `workflows.md` 拆为本目录下 16 个独立工作流文件，按职业归类（audit/tax/finance/investment/bp）。本 README 保留索引头、通用异常升级规则、执行原则、自动选择表。
+> 拆分说明（2026-06-09 三层重构）：原 `workflows.md` 拆为本目录下 18 个独立工作流文件，按职业归类（audit/tax/finance/investment/bp）。本 README 保留索引头、通用异常升级规则、执行原则、自动选择表。
 
 ---
 
@@ -16,7 +16,7 @@
 | W1: 应收账款审计套件 | `audit/ar_audit.md` | 应收明细表 + 客户基本信息 | 账龄分析 + 函证抽样 + 函证地址 | balance_sheet_process / aging_analysis / audit_sampling / address_split |
 | W2: 银行存款审计套件 | `audit/bank_audit.md` | 银行对账单 + 银行日记账 | 调节表 + 异常日记账 | bank_reconciliation / benford_law_check |
 | W3: 固定资产审计套件 | `audit/fa_audit.md` | 固定资产明细表 | 折旧重算 + 抽样核实 | depreciation_check / audit_sampling |
-| W4: 扫描凭证数字化 | `audit/voucher_digitize.md` | 扫描版凭证 PDF | 拆分凭证 + OCR 识别 + 结构化数据 | voucher_pdf_split / document_ocr_batch |
+| W4: 扫描凭证数字化 | `audit/voucher_digitize.md` | 扫描版凭证 PDF | 拆分凭证 + OCR 识别 + 结构化数据 | voucher_pdf_split / document_ocr |
 | W5: 总账分析与异常检测 | `audit/gl_analysis.md` | 序时账（凭证流水） | 异常分录清单 + 关键交易 | data_file_overview / benford_law_check / data_filter |
 | W6: 月结闭环 | `finance/month_end.md` | 各模块业务数据 | 计提调度表 + 余额变动表 + 差异分析 | balance_sheet_process / data_group_summary / data_pivot |
 | W7: 上市公司财报分析 | `investment/listed_analysis.md` | 股票代码 | 三年财务数据 + 关键指标分析 | stock_financial / stock_history / data_pivot |
@@ -28,8 +28,9 @@
 | W13: 底稿全流程 | `audit/full_workpaper.md` | 客户名 + 财务数据 + 各类原始文件 | 完整底稿包（含模板填充 + 各项程序结果） | workpaper_init / materiality_calculator / analytical_procedures + 全部审计工具 |
 | W14: 财务比率分析 | `bp/ratio_analysis.md` | 科目余额表 或 三大报表 | 五类比率分析底稿 + 趋势图 + 异常提示 | financial_ratios / analytical_procedures |
 | W15: 现金流量表编制 | `finance/cashflow.md` | 序时账（直接法）或 三大报表+TB（间接法） | 现金流量表 + 与报表勾稽校验 | cashflow_direct / cashflow_test |
-| W16: 企业所得税纳税调整 | `tax/tax_adjustment.md` | 科目余额表 或 利润表 + 调整项说明 | 纳税调整明细表 + A105000系列底稿 | tax_adjustment / data_file_overview |
+| W18: 企业所得税纳税调整 | `tax/tax_adjustment.md` | 科目余额表 或 利润表 + 调整项说明 | 纳税调整明细表 + A105000系列底稿 | tax_adjustment / data_file_overview |
 | W17: 个股排雷（一句话端到端） | `investment/stock_screening.md` | 公司名/股票代码 | 排雷报告（市场信号+财务硬伤+先例比对+红黄绿灯） | market_quote / stock_financial / stock_history / financial_ratios / analytical_procedures + 知识库 |
+| W18: 输出四维自检（交付前验证） | `verification/output_review.md` | 任何专业产出（底稿/报表/分录/分析等） | 四维自检结果（勾稽/准则/口径/引用）+ 红字标注/已自检标签 | 无强制（可借 financial_ratios / analytical_procedures 复算）+ 知识库 |
 
 ---
 
@@ -111,13 +112,14 @@
 | 全套底稿、底稿框架、新项目底稿、从计划到报告 | W13 | `audit/full_workpaper.md` |
 | 财务比率、ROE/ROA/流动比率/资产周转、比率分析、财务指标、五类比率 | W14 | `bp/ratio_analysis.md` |
 | 现金流量表、间接法、直接法、现金流编制、序时账归类 | W15 | `finance/cashflow.md` |
-| 纳税调整、企业所得税、税会差异、A105000、汇算清缴底稿、调增调减 | W16 | `tax/tax_adjustment.md` |
+| 纳税调整、企业所得税、税会差异、A105000、汇算清缴底稿、调增调减 | W18 | `tax/tax_adjustment.md` |
 | 排雷、排雷XX、有没有雷、会不会暴雷、这股靠不靠谱、XX财报有没有问题 | W17 | `investment/stock_screening.md` |
+| 自检、复核、交付前检查、核对一下、这报告对不对、帮我验一下、勾稽对不对 | W18 | `verification/output_review.md` |
 
 如果用户的需求不属于任何已定义工作流，但跨越多个工具，AI 应主动设计一个临时工作流，向用户确认后执行。
 
 ---
 
 > 末次更新：2026-06-10 [新增工作流] W17 个股排雷（investment/stock_screening.md）——一句话端到端排雷，串 market_quote + stock_financial + financial_fraud Red Flags，配套新增 market_quote 多市场行情工具
-> 末次更新：2026-06-09 [三层重构] 由 workflows.md 拆分为 16 个独立工作流文件 + 本索引
-> 原始内容来源：workflows.md 末次更新 2026-06-03（新增 W14/W15/W16；W6 接入 cashflow_test；W7 接入 financial_ratios + non_recurring_items）
+> 末次更新：2026-06-09 [三层重构] 由 workflows.md 拆分为 18 个独立工作流文件 + 本索引
+> 原始内容来源：workflows.md 末次更新 2026-06-03（新增 W14/W15/W18；W6 接入 cashflow_test；W7 接入 financial_ratios + non_recurring_items）

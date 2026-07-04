@@ -40,7 +40,7 @@ def _dumps(result) -> str:
 
 from gridman_mcp.tools.data.balance_sheet_processor import process_balance_sheet
 from gridman_mcp.tools.audit.bank_reconciliation import reconcile_bank
-from gridman_mcp.tools.audit.aging_analysis import analyze_aging
+from gridman_mcp.tools.audit.aging_analysis import analyze_aging, verify_aging
 from gridman_mcp.tools.audit.benford_law import check_benford
 from gridman_mcp.tools.data.address_split import split_address
 from gridman_mcp.tools.document.document_ocr import convert_document, convert_documents_batch
@@ -48,6 +48,7 @@ from gridman_mcp.tools.document.pdf_tools import merge_pdfs, split_pdf, extract_
 from gridman_mcp.tools.document.voucher_split import split_vouchers
 from gridman_mcp.tools.market.stock_data import get_stock_history, get_financial_data
 from gridman_mcp.tools.market.market_quote import get_market_quote
+from gridman_mcp.tools.market.company_search import search_company, query_company
 from gridman_mcp.tools.data.data_analyst import data_overview, group_summary, filter_data, pivot_table
 from gridman_mcp.tools.audit.depreciation_check import check_depreciation
 from gridman_mcp.tools.audit.audit_sampling import generate_sample
@@ -63,6 +64,10 @@ from gridman_mcp.tools.finance.cashflow_direct import generate_cashflow_direct
 from gridman_mcp.tools.finance.non_recurring_items import calculate_non_recurring
 from gridman_mcp.tools.finance.financial_ratios import calculate_ratios
 from gridman_mcp.tools.finance.tax_adjustment import generate_tax_adjustment
+from gridman_mcp.tools.finance.pvm_decompose import decompose_pvm
+from gridman_mcp.tools.finance.structure_rate_attribution import attribute_structure_rate
+from gridman_mcp.tools.finance.dimension_explainer import explain_dimensions
+from gridman_mcp.tools.finance.concentration_hhi import calculate_hhi
 from gridman_mcp.tools.audit.reclassification import run_reclassification
 from gridman_mcp.tools.audit.voucher_scan import scan_vouchers
 from gridman_mcp.tools.data.fuzzy_match import fuzzy_match as run_fuzzy_match
@@ -138,16 +143,88 @@ def _selected_groups():
     return selected or list(_TOOL_GROUPS)
 
 
+def gridman_locate() -> str:
+    """定位古立特的记忆区 gridman-mind 的绝对路径（**仅在确实要读写 gridman-mind 时才调**，拿确定路径、不用在文件系统里猜）。
+
+    ⚠ 不要在每次新对话、自我介绍、打招呼或纯知识问答时调用本工具——那些场景跟记忆区无关。
+    只有当任务确实涉及读写 mind（记项目/企业上下文、存工具产出、查历史记忆等）时，第一步才调它。
+
+    MCP server 自己就跑在 gridman-mcp/ 里，能可靠算出 gridman-mind 的绝对路径并按需重建空结构。
+    解析结果会写入「主目录指针」`~/.gridman/home.json`，供没装 MCP 的纯 Skill 场景下次直接读取
+    （扫一次、永久记得、因用户而异）。
+    返回：记忆区(mind)及其各子目录、应用(app)目录的绝对路径，是否本就存在、指针文件路径、当前工具组、版本。
+    """
+    from pathlib import Path
+    import json as _json
+    from gridman_mcp.tools._shared.paths import resolve_mind_dir
+
+    app = Path.cwd()
+    # 解析顺序：GRIDMAN_MIND 环境变量 → ~/.gridman/home.json 指针 → CWD 兜底。
+    # mind_source 暴露出来：=cwd 说明是按当前工作目录推算的（uvx 部署下 CWD 不可控，
+    # 此时位置可能不是用户预期的，值得提示）。
+    mind, existed_before, mind_source = resolve_mind_dir()
+
+    subdirs = {
+        "entities": str(mind / "entities"),   # 企业上下文（每户 md：工商事实自动节 + 判断节）
+        "projects": str(mind / "projects"),    # 项目记忆
+        "outputs": str(mind / "outputs"),      # 工具产出
+        "reports": str(mind / "reports"),      # 下载的年报/公告
+        "feedback": str(mind / "feedback"),    # 三反馈池(route_failures/gotchas/error_log)
+        "temp": str(mind / "temp"),            # 临时中间文件
+    }
+
+    # 写主目录指针——“扫一次、永久记得”。主目录是与 mind/app 位置无关、永远可定位的锚点，
+    # 解决“要读记着位置的文件、得先知道文件在哪”的先有鸡还是蛋问题。
+    pointer_path = None
+    try:
+        ptr_dir = Path.home() / ".gridman"
+        ptr_dir.mkdir(parents=True, exist_ok=True)
+        ptr = ptr_dir / "home.json"
+        import time as _time
+        ptr.write_text(_json.dumps({
+            "gridman_app": str(app),
+            "gridman_mind": str(mind),
+            "subdirs": subdirs,
+            "version": __version__,
+            "updated_at": _time.strftime("%Y-%m-%d %H:%M:%S"),
+            "source": "gridman_locate (MCP)",
+        }, ensure_ascii=False, indent=2), encoding="utf-8")
+        pointer_path = str(ptr)
+    except Exception:
+        pass  # 指针写失败不影响定位本身（返回值已含权威路径）
+
+    result = {
+        "status": "success",
+        "gridman_app": str(app),
+        "gridman_mind": str(mind),
+        "mind_existed_before": existed_before,
+        "mind_source": mind_source,  # env / pointer / cwd —— cwd 表示按工作目录兜底推算
+        "subdirs": subdirs,
+        "pointer_file": pointer_path,
+        "tool_groups_enabled": _selected_groups(),
+        "version": __version__,
+    }
+    if mind_source == "cwd":
+        result["note"] = (
+            "mind 路径是按当前工作目录(CWD)推算的兜底结果——uvx 部署下 CWD 由宿主 Agent 决定，"
+            "可能不是你预期的位置。建议在 MCP 配置的 env 里设 GRIDMAN_MIND 显式锁定，"
+            "或删除 ~/.gridman/home.json 后在正确目录重新定位。"
+        )
+    return _dumps(result)
+
+
 def _register_selected():
     """按 GRIDMAN_TOOLS 把选中类别的工具真正注册到 FastMCP。返回 (类别列表, 工具数)。"""
     import sys
+    # 始终注册的 meta 工具（不受 GRIDMAN_TOOLS 门控）——保证任何配置下都能定位 mind/app
+    mcp.tool()(gridman_locate)
     groups = _selected_groups()
-    count = 0
+    count = 1
     for g in groups:
         for fn in _TOOL_GROUPS[g]:
             mcp.tool()(fn)
             count += 1
-    print(f"[gridman] 工具门控：注册类别 {groups}，共 {count} 个工具", file=sys.stderr)
+    print(f"[gridman] 工具门控：注册类别 {groups}，共 {count} 个工具（含 gridman_locate）", file=sys.stderr)
     return groups, count
 
 
@@ -188,17 +265,33 @@ def bank_reconciliation(
 @tool("审计")
 def aging_analysis(
     file_path: str,
-    base_date: str,
+    base_date: str = None,
     aging_brackets_months: list = None,
     output_path: str = None,
+    mode: str = "calc",
+    account_type: str = "AR",
+    sheet_name: str = None,
 ) -> str:
-    """往来账龄分析：按先进先出法计算各客商账龄分布，生成账龄分析表。base_date 格式：YYYY-MM-DD"""
-    result = analyze_aging(
-        file_path=file_path,
-        base_date=base_date,
-        aging_brackets_months=aging_brackets_months,
-        output_path=output_path,
-    )
+    """往来账龄分析（两种模式）：
+    - mode="calc"（默认）：按往来明细+先进先出法计算各客商账龄分布，生成账龄表。需 base_date（YYYY-MM-DD）。
+    - mode="verify"：对已有多年账龄表做四步自洽复核（余额勾稽/跨年结转/逐段结转/滚动逻辑），输出差异报告。需 account_type（AR/AP/Prepay/PreRcv）。"""
+    if str(mode).lower() in ("verify", "复核", "校验", "核对"):
+        result = verify_aging(
+            file_path=file_path,
+            account_type=account_type,
+            output_path=output_path,
+            sheet_name=sheet_name,
+        )
+    else:
+        if not base_date:
+            result = {"status": "error", "message": "mode=calc 需要 base_date（YYYY-MM-DD）"}
+        else:
+            result = analyze_aging(
+                file_path=file_path,
+                base_date=base_date,
+                aging_brackets_months=aging_brackets_months,
+                output_path=output_path,
+            )
     return _dumps(result)
 
 
@@ -240,71 +333,51 @@ def address_split(
 
 @tool("文档")
 def document_ocr(
-    file_path: str,
-    langs: str = "zh,en",
+    file_path: str = None,
+    file_paths: list = None,
     output_path: str = None,
-) -> str:
-    """文档识别：将 PDF/图片/Office 文件转换为 Markdown 文本。
-
-    调用 MinerU 云端精准解析 API（vlm 模型），支持复杂排版、表格、公式识别。
-    适合年报、招股书、扫描件、研究报告等。需在 env 中配置 MINERU_API_TOKEN。
-    """
-    result = convert_document(
-        file_path=file_path,
-        output_path=output_path,
-        langs=langs,
-    )
-    return _dumps(result)
-
-
-@tool("文档")
-def document_ocr_batch(
-    file_paths: list,
     output_dir: str = None,
     langs: str = "zh,en",
 ) -> str:
-    """批量文档识别：将多个 PDF/图片/Office 文件批量转换为 Markdown。
+    """文档识别：将 PDF/图片/Office 文件转换为 Markdown 文本（MinerU 云端 vlm 模型，支持复杂排版/表格/公式）。
 
-    单次最多 200 个文件（内部自动按 50 个一批提交），所有文件并行解析。
-    结果按文件名保存到 output_dir（如指定）。需在 env 中配置 MINERU_API_TOKEN。
+    - 单文件：传 file_path（可选 output_path）
+    - 多文件：传 file_paths（列表，单次最多 200 个，内部自动分批并行；可选 output_dir）
+    需在 env 中配置 MINERU_API_TOKEN。
     """
-    result = convert_documents_batch(
-        file_paths=file_paths,
-        output_dir=output_dir,
-        langs=langs,
-    )
+    if file_paths:
+        result = convert_documents_batch(file_paths=file_paths, output_dir=output_dir, langs=langs)
+    elif file_path:
+        result = convert_document(file_path=file_path, output_path=output_path, langs=langs)
+    else:
+        result = {"status": "error", "message": "需传 file_path（单文件）或 file_paths（多文件，列表）"}
     return _dumps(result)
 
 
 @tool("文档")
-def pdf_merge(
-    file_paths: list,
-    output_path: str,
+def pdf_pages(
+    action: str,
+    file_path: str = None,
+    file_paths: list = None,
+    output_path: str = None,
+    output_dir: str = None,
+    ranges: str = None,
+    pages: str = None,
 ) -> str:
-    """PDF 合并：将多个 PDF 文件合并为一个。按列表顺序拼接。"""
-    result = merge_pdfs(file_paths=file_paths, output_path=output_path)
-    return _dumps(result)
+    """PDF 页面操作。action 三选一：
 
-
-@tool("文档")
-def pdf_split(
-    file_path: str,
-    ranges: str,
-    output_dir: str,
-) -> str:
-    """PDF 拆分：按页码范围拆分 PDF。ranges 格式如 "1-5,6-10,11-20"。"""
-    result = split_pdf(file_path=file_path, ranges=ranges, output_dir=output_dir)
-    return _dumps(result)
-
-
-@tool("文档")
-def pdf_extract(
-    file_path: str,
-    pages: str,
-    output_path: str,
-) -> str:
-    """PDF 提取页面：从 PDF 中提取指定页面。pages 格式如 "1,3,5,7-10"。"""
-    result = extract_pages(file_path=file_path, pages=pages, output_path=output_path)
+    - merge：合并多个 PDF（file_paths 按顺序拼接 → output_path）
+    - split：按页码范围拆分（file_path + ranges 如 "1-5,6-10,11-20" → output_dir）
+    - extract：提取指定页面（file_path + pages 如 "1,3,5,7-10" → output_path）
+    """
+    if action == "merge":
+        result = merge_pdfs(file_paths=file_paths, output_path=output_path)
+    elif action == "split":
+        result = split_pdf(file_path=file_path, ranges=ranges, output_dir=output_dir)
+    elif action == "extract":
+        result = extract_pages(file_path=file_path, pages=pages, output_path=output_path)
+    else:
+        result = {"status": "error", "message": f"未知 action：{action}（可选 merge / split / extract）"}
     return _dumps(result)
 
 
@@ -329,6 +402,42 @@ def market_quote(symbols: str) -> str:
     symbols 接受代码或指数别名，如 "600519" / "00700" / "AAPL" / "上证指数" / "600519,00700,AAPL,纳斯达克"。
     深度数据走 stock_history（A股/港股/美股K线）/ stock_financial（A股/港股/美股三大报表）。"""
     result = get_market_quote(symbols=symbols)
+    return _dumps(result)
+
+
+@tool("市场")
+def company_search(keyword: str, limit: int = 5) -> str:
+    """企业模糊搜索（工商查询第一步，用于主体消歧）：传中文企业简称/全称，返回候选企业列表（含 entid、企业全称、经营状态）。
+
+    风鸟(Riskbird)云端 API。当企业名是简称或可能多义时，先用本工具拿到候选，确认是哪一家后再调 company_query。
+    不支持英文关键词。需在 env 配置 RISKBIRD_API_KEY。"""
+    result = search_company(keyword=keyword, limit=limit)
+    return _dumps(result)
+
+
+@tool("市场")
+def company_query(
+    name: str = None,
+    entid: str = None,
+    dimensions: list = None,
+    refresh: bool = False,
+    cache_ttl_days: float = 7,
+) -> str:
+    """企业工商+风险画像取数（审计 P2 工商核对 / P8 坏账测算的取数底座）：传企业名称（自动搜索+消歧）或 entid，返回标准化的工商与风险数据。
+
+    维度 dimensions（默认 basic+经营异常+失信；省额度，其余按需显式传入）可选：
+    - 工商类：basic(基本信息) / shareholders(股东) / executives(董监高) / investments(对外投资) / changes(工商变更)
+    - 风险类：executed(被执行) / dishonest(失信) / limit_consumption(限高) / abnormal(经营异常) / serious_illegal(严重违法) / penalty(行政处罚)
+
+    额度提醒：每个维度=1次API调用、模糊搜索=1次；部分 Key 有每日上限（如 50 次/天）。
+    自带「往来单位数据库」缓存（gridman-mind/entities/）+ 名称索引：查过的企业（含按名称重查）零消耗复用；refresh=True 强制重查。
+    返回含「本次消耗API次数」，便于控制额度。已知 entid 时直接传 entid 可省去搜索那 1 次。
+    本工具只取数、不做职业判断；注册资本/经营范围合理性、关联方认定由古立特结合知识库判断。
+    风鸟数据非法定权威，关键户建议人工到国家企业信用信息公示系统(gsxt.gov.cn)终审。需在 env 配置 RISKBIRD_API_KEY。"""
+    result = query_company(
+        name=name, entid=entid, dimensions=dimensions,
+        refresh=refresh, cache_ttl_days=cache_ttl_days,
+    )
     return _dumps(result)
 
 
@@ -850,6 +959,123 @@ def tax_adjustment(
     return _dumps(result)
 
 
+@tool("财务")
+def pvm_decompose(
+    file_path: str,
+    product_column: str = "产品",
+    base_qty_column: str = "基期销量",
+    base_price_column: str = "基期单价",
+    base_cost_column: str = "基期单位成本",
+    curr_qty_column: str = "本期销量",
+    curr_price_column: str = "本期单价",
+    curr_cost_column: str = "本期单位成本",
+    sheet_name: str = None,
+    output_path: str = None,
+) -> str:
+    """完整 PVM 五效应分解（量/价/Mix/成本/交叉）。
+
+    把多产品/多区域两期毛利差异拆成"纯总量、组合(Mix)、价格、成本、交叉"五条腿，
+    回答"是卖少了还是卖错结构了"。输入表每行一个产品（或区域/车型），
+    含基期/本期的销量、单价、单位成本。单位毛利 = 单价 − 单位成本。
+    """
+    result = decompose_pvm(
+        file_path=file_path,
+        product_column=product_column,
+        base_qty_column=base_qty_column,
+        base_price_column=base_price_column,
+        base_cost_column=base_cost_column,
+        curr_qty_column=curr_qty_column,
+        curr_price_column=curr_price_column,
+        curr_cost_column=curr_cost_column,
+        sheet_name=sheet_name,
+        output_path=output_path,
+    )
+    return _dumps(result)
+
+
+@tool("财务")
+def structure_rate_attribution(
+    file_path: str,
+    object_column: str = "对象",
+    base_qty_column: str = "基期销量",
+    base_unit_column: str = "基期单位指标",
+    curr_qty_column: str = "本期销量",
+    curr_unit_column: str = "本期单位指标",
+    sheet_name: str = None,
+    output_path: str = None,
+) -> str:
+    """单位指标变动归因（结构效应 vs 费率效应）。
+
+    把单位指标（单车边际/客单价/人均产值/单位能耗）的两期变化精确拆成结构效应
+    （占比变化）与费率效应（自身水平变化），恒等闭合无残差。
+    输入表每行一个对象（车型/区域/渠道），含基期/本期的销量与单位指标。
+    """
+    result = attribute_structure_rate(
+        file_path=file_path,
+        object_column=object_column,
+        base_qty_column=base_qty_column,
+        base_unit_column=base_unit_column,
+        curr_qty_column=curr_qty_column,
+        curr_unit_column=curr_unit_column,
+        sheet_name=sheet_name,
+        output_path=output_path,
+    )
+    return _dumps(result)
+
+
+@tool("财务")
+def dimension_explainer(
+    file_path: str,
+    quality_column: str,
+    qty_column: str,
+    dimension_columns: list = None,
+    primary_dimension: str = None,
+    sheet_name: str = None,
+    output_path: str = None,
+) -> str:
+    """多维利润质量诊断（η²/ω² 维度解释力 + 规模质量矩阵 + 拖累贡献）。
+
+    回答两个问题：该从哪个维度先下钻（按 η²/ω² 解释力排序，ω² 修正高基数偏误），
+    在选定维度内谁是"问题少年"（量大且质量低，看规模×质量矩阵 + 拖累贡献）。
+    """
+    result = explain_dimensions(
+        file_path=file_path,
+        quality_column=quality_column,
+        qty_column=qty_column,
+        dimension_columns=dimension_columns,
+        primary_dimension=primary_dimension,
+        sheet_name=sheet_name,
+        output_path=output_path,
+    )
+    return _dumps(result)
+
+
+@tool("财务")
+def concentration_hhi(
+    file_path: str,
+    object_column: str,
+    amount_column: str,
+    period_column: str = None,
+    sheet_name: str = None,
+    output_path: str = None,
+) -> str:
+    """HHI 赫芬达尔集中度分析（支持单期 + 多期趋势）。
+
+    判断收入/销量/利润是否过度依赖少数客户、区域、产品、供应商。
+    HHI = Σ(占比²)，< 0.15 低（分散） | 0.15–0.25 中 | > 0.25 高（集中）。
+    传 period_column 则算每期 HHI + 趋势。
+    """
+    result = calculate_hhi(
+        file_path=file_path,
+        object_column=object_column,
+        amount_column=amount_column,
+        period_column=period_column,
+        sheet_name=sheet_name,
+        output_path=output_path,
+    )
+    return _dumps(result)
+
+
 @tool("审计")
 def reclassification(
     file_path: str,
@@ -1015,82 +1241,54 @@ def office_list_apps() -> str:
 
 
 @tool("办公")
-def office_excel_read(
+def excel_op(
+    action: str,
     range_address: str = None,
     sheet_name: str = None,
-    engine: str = "auto",
     read_formula: bool = False,
-) -> str:
-    """读取当前打开的表格（Excel 或 WPS 表格）中的数据。
-
-    - range_address: 如 "A1:D10"。不指定则读取当前选中区域。
-    - sheet_name: 工作表名。不指定则读取活动工作表。
-    - engine: auto(默认，自动检测M365/WPS) / office / wps
-    - read_formula: False(默认)读计算结果值；True 读单元格公式（看底稿勾稽逻辑）
-    结果含 engine 字段，标明实际操控的是哪个软件。
-    """
-    result = _excel_read_range(range_address=range_address, sheet_name=sheet_name, engine=engine, read_formula=read_formula)
-    return _dumps(result)
-
-
-@tool("办公")
-def office_excel_write(
-    data: list,
+    data: list = None,
     start_cell: str = "A1",
-    sheet_name: str = None,
+    cell: str = None,
+    formula: str = None,
     engine: str = "auto",
 ) -> str:
-    """向当前打开的表格（Excel 或 WPS 表格）写入数据，实时显示在用户屏幕上。
+    """当前打开的表格（Excel/WPS 表格）操作。action 三选一：
 
-    - data: 二维列表，如 [["姓名","金额"],["张三",1000]]
-    - start_cell: 起始单元格，如 "A1"、"B3"
-    - sheet_name: 目标工作表名。不存在则自动新建。
-    - engine: auto / office / wps
-    ⚠ 会改动用户正在打开的文件，调用前应先经用户确认。
+    - read：读数据（range_address 指定区域如 "A1:D10"，不指定则读选中区；read_formula=True 读公式而非值）
+    - write：写数据（data 二维列表如 [["姓名","金额"],["张三",1000]] + start_cell；⚠ 改用户活文件，先确认）
+    - formula：设公式（cell 如 "E2" + formula 如 "=SUM(B2:D2)"；返回计算结果；⚠ 改用户活文件，先确认）
+    sheet_name 不指定用活动表。engine: auto（自动检测 M365/WPS）/ office / wps。结果含 engine 字段。
     """
-    result = _excel_write_range(data=data, start_cell=start_cell, sheet_name=sheet_name, engine=engine)
+    if action == "read":
+        result = _excel_read_range(range_address=range_address, sheet_name=sheet_name, engine=engine, read_formula=read_formula)
+    elif action == "write":
+        result = _excel_write_range(data=data, start_cell=start_cell, sheet_name=sheet_name, engine=engine)
+    elif action == "formula":
+        result = _excel_set_formula(cell=cell, formula=formula, sheet_name=sheet_name, engine=engine)
+    else:
+        result = {"status": "error", "message": f"未知 action：{action}（可选 read / write / formula）"}
     return _dumps(result)
 
 
 @tool("办公")
-def office_excel_formula(
-    cell: str,
-    formula: str,
-    sheet_name: str = None,
-    engine: str = "auto",
-) -> str:
-    """在当前表格（Excel 或 WPS 表格）的指定单元格设置公式。
-
-    - cell: 如 "E2"
-    - formula: 如 "=SUM(B2:D2)" 或 "=VLOOKUP(A2,Sheet2!A:B,2,0)"
-    - engine: auto / office / wps
-    写入后返回公式的计算结果。
-    """
-    result = _excel_set_formula(cell=cell, formula=formula, sheet_name=sheet_name, engine=engine)
-    return _dumps(result)
-
-
-@tool("办公")
-def office_word_read(engine: str = "auto") -> str:
-    """读取当前打开的文字文档（Word 或 WPS 文字）内容（全文 + 段落概览）。engine: auto/office/wps"""
-    result = _word_read_document(engine=engine)
-    return _dumps(result)
-
-
-@tool("办公")
-def office_word_append(
-    text: str,
+def word_op(
+    action: str,
+    text: str = None,
     style: str = None,
     engine: str = "auto",
 ) -> str:
-    """在当前文字文档（Word 或 WPS 文字）末尾追加一段文本。
+    """当前打开的文字文档（Word/WPS 文字）操作。action 二选一：
 
-    - text: 要追加的文本
-    - style: 样式名，如 "Heading 1"、"Normal"、"标题 1"
-    - engine: auto / office / wps
-    ⚠ 会改动用户正在打开的文件，调用前应先经用户确认。
+    - read：读全文 + 段落概览
+    - append：末尾追加文本（text 必填；style 可选样式名如 "Heading 1"/"标题 1"；⚠ 改用户活文件，先确认）
+    engine: auto / office / wps。
     """
-    result = _word_append_text(text=text, style=style, engine=engine)
+    if action == "read":
+        result = _word_read_document(engine=engine)
+    elif action == "append":
+        result = _word_append_text(text=text, style=style, engine=engine)
+    else:
+        result = {"status": "error", "message": f"未知 action：{action}（可选 read / append）"}
     return _dumps(result)
 
 
@@ -1113,28 +1311,25 @@ def office_save_as(
 
 
 @tool("办公")
-def office_ppt_info(engine: str = "auto") -> str:
-    """获取当前打开的演示文稿（PowerPoint 或 WPS 演示）信息（幻灯片列表和标题）。engine: auto/office/wps"""
-    result = _ppt_get_info(engine=engine)
-    return _dumps(result)
-
-
-@tool("办公")
-def office_ppt_add_slide(
+def ppt_op(
+    action: str,
     title: str = "",
     content: str = "",
     layout_index: int = 2,
     engine: str = "auto",
 ) -> str:
-    """在当前演示文稿（PowerPoint 或 WPS 演示）末尾添加一张新幻灯片。
+    """当前打开的演示文稿（PowerPoint/WPS 演示）操作。action 二选一：
 
-    - title: 标题文字
-    - content: 正文文字
-    - layout_index: 版式（1=标题页, 2=标题+内容, 3=节标题, 7=空白）
-    - engine: auto / office / wps
-    ⚠ 会改动用户正在打开的文件，调用前应先经用户确认。
+    - info：获取幻灯片列表和标题
+    - add_slide：末尾加一页（title 标题 / content 正文 / layout_index 版式：1 标题页 2 标题+内容 3 节标题 7 空白；⚠ 改用户活文件，先确认）
+    engine: auto / office / wps。
     """
-    result = _ppt_add_slide(title=title, content=content, layout_index=layout_index, engine=engine)
+    if action == "info":
+        result = _ppt_get_info(engine=engine)
+    elif action == "add_slide":
+        result = _ppt_add_slide(title=title, content=content, layout_index=layout_index, engine=engine)
+    else:
+        result = {"status": "error", "message": f"未知 action：{action}（可选 info / add_slide）"}
     return _dumps(result)
 
 

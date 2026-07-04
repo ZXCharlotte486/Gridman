@@ -9,7 +9,7 @@
    ↓
 Step 1: voucher_pdf_split（按凭证号自动拆分为独立 PDF）
    ↓
-Step 2: document_ocr_batch（批量识别为 Markdown，最多 200 个/批）
+Step 2: document_ocr（批量识别为 Markdown，多文件传 file_paths，最多 200 个/批）
    ↓
 Step 3: 解析 Markdown，提取凭证字、凭证号、日期、摘要、科目、借贷金额
    ↓
@@ -21,7 +21,7 @@ Step 3: 解析 Markdown，提取凭证字、凭证号、日期、摘要、科目
 - OCR 识别后核对借贷平衡
 - 不平衡的凭证标红，提示人工复核
 
-**注意：** OCR 需要 MINERU_API_TOKEN 已配置（详见 gridman-app/README.md）。
+**注意：** OCR 需要 MINERU_API_TOKEN 已配置（详见 gridman-mcp/README.md）。
 
 ## 验证清单
 
