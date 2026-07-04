@@ -12,7 +12,7 @@ Gridman/
 │   ├── SKILL.md                        ← 主文件（人格 + 路由 + 工作协议）
 │   ├── INSTALL.md                      ← 工具层自动安装固件（AI 读了自动装）
 │   ├── operations/                     ← 操作参考（工具清单 + 法规源目录）
-│   │   ├── mcp_tools.md                ← 40 个业务工具完整清单 + 行为约束
+│   │   ├── mcp_tools.md                ← 44 个业务工具完整清单 + 行为约束
 │   │   └── source_directory.md         ← 法规 / 准则官方源入口目录
 │   ├── references/
 │   │   ├── knowledge/                  ← 32 个学科模块（按 8 学科分目录）
@@ -33,7 +33,7 @@ Gridman/
 │   │   │   └── verification/           ← 输出核验（1）
 │   │   └── extra/                      ← 方法论 3（咨询 / 治理 / 提问）
 │   └── payload/                        ← 工具层安装包（whl）
-└── gridman-app（公开版）/              ← 工具层（40 个 MCP 业务工具 + 1 meta，按 6 类分组）
+└── gridman-app（公开版）/              ← 工具层（44 个 MCP 业务工具 + 1 meta，按 6 类分组）
     ├── pyproject.toml
     └── gridman_mcp/
         ├── server.py                   ← MCP Server 入口（含按需门控 GRIDMAN_TOOLS）
@@ -113,4 +113,4 @@ AI 自动读取 INSTALL.md，完成 uv 检测 → whl 安装 → MCP 配置写�
 
 ---
 
-*v2.1.1 · 35 知识模块 · 40 MCP 业务工具 · 19 工作流 · 作者：真夏Charlotte*
+*v2.1.1 · 35 知识模块 · 44 MCP 业务工具 · 19 工作流 · 作者：真夏Charlotte*
